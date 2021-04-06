@@ -23,10 +23,34 @@ class FileService {
     }
   }
 
-  async getAll() {
+  async getAll(params) {
+    const findExam = []
     const exams = await SchoolModel.find()
-    return exams
+    exams.forEach(exam => {
+      const parseDate = exam.examDate.split('.')
+      if (params.year === parseDate[parseDate.length-1]) {
+        findExam.push(exam)
+      }
+    })
+    return findExam
   }
+
+  async getAllYears() {
+    const years = []
+    let i = 0
+    const exams = await SchoolModel.find()
+    exams.forEach(item => {
+      const parseDate = item.examDate.split('.')
+      if (years[i] !== parseDate[parseDate.length-1]) {
+        years.push(parseDate[parseDate.length-1])
+        if (years.length-1 !== i) {
+          i = years.length-1
+        }
+      }
+    })
+    return years
+  }
+
   async writeOnMongoDB (path) {
     const newExam = this.parseFile(path)
     const findExam = await SchoolModel.find({examCode: newExam.examCode, examName: newExam.examName, examDate: newExam.examDate})

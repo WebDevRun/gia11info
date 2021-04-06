@@ -12,8 +12,17 @@ class SchoolController {
 
   async getAll(req, res) {
     try {
-      const exams = await FileService.getAll()
+      const exams = await FileService.getAll(req.query)
       return res.json(exams)
+    } catch (error) {
+      res.status(500).json(error)
+    }
+  }
+
+  async getAllYears (req, res) {
+    try {
+      const years = await FileService.getAllYears()
+      return res.json(years)
     } catch (error) {
       res.status(500).json(error)
     }

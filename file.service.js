@@ -24,21 +24,23 @@ class FileService {
   }
 
   async getAll(params) {
-    const findExam = []
-    const exams = await SchoolModel.find()
-    exams.forEach(exam => {
-      const parseDate = exam.examDate.split('.')
-      if (params.year === parseDate[parseDate.length-1]) {
-        findExam.push(exam)
-      }
-    })
-    return findExam
+    // const findExam = []
+    // const exams = await SchoolModel.find()
+    const exams = await SchoolModel.find({ examDate: { $regex: params.year } })
+    // console.log(exams2)
+    // exams.forEach(exam => {
+    //   const parseDate = exam.examDate.split('.')
+    //   if (params.year === parseDate[parseDate.length-1]) {
+    //     findExam.push(exam)
+    //   }
+    // })
+    return exams
   }
 
   async getAllYears() {
     const years = []
     let i = 0
-    const exams = await SchoolModel.find()
+    const exams = await SchoolModel.find({}, { examDate: 1, _id: 0 })
     exams.forEach(item => {
       const parseDate = item.examDate.split('.')
       if (years[i] !== parseDate[parseDate.length-1]) {

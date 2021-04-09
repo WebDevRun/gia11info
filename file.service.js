@@ -24,16 +24,7 @@ class FileService {
   }
 
   async getAll(params) {
-    // const findExam = []
-    // const exams = await SchoolModel.find()
     const exams = await SchoolModel.find({ examDate: { $regex: params.year } })
-    // console.log(exams2)
-    // exams.forEach(exam => {
-    //   const parseDate = exam.examDate.split('.')
-    //   if (params.year === parseDate[parseDate.length-1]) {
-    //     findExam.push(exam)
-    //   }
-    // })
     return exams
   }
 

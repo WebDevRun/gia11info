@@ -1,12 +1,12 @@
 import Router from 'express'
-import SchoolController from './school.controller.js'
+import FileController from './file.controller.js'
 
 const router = new Router()
 
-router.post('/exams', SchoolController.create)
-router.get('/exams', SchoolController.getAll)
-router.get('/years', SchoolController.getAllYears)
-// router.put('/exams', SchoolController.update)
-// router.delete('/exams/:id', SchoolController.delete)
+router.post('/exams', FileController.create)
+router.get('/exams', FileController.getAll)
+router.get('/years', FileController.getAllYears)
+// router.put('/exams', FileController.update)
+// router.delete('/exams/:id', FileController.delete)
 
 export default router

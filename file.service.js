@@ -24,21 +24,23 @@ class FileService {
   }
 
   async getAll(params) {
-    const exams = await SchoolModel.find({ examDate: { $regex: params.year } })
-    return exams
+    const exams = await SchoolModel.find()
+    return exams.filter(exam => {
+      exam.participants = exam.participants.filter(participant => participant.examDate.getFullYear() === +params.year)
+      if (!exam.participants.length) {
+        return false
+      }
+      return true
+    })
   }
 
   async getAllYears() {
     const years = []
-    let i = 0
-    const exams = await SchoolModel.find({}, { examDate: 1, _id: 0 })
-    exams.forEach(item => {
-      const parseDate = item.examDate.split('.')
-      if (years[i] !== parseDate[parseDate.length-1]) {
-        years.push(parseDate[parseDate.length-1])
-        if (years.length-1 !== i) {
-          i = years.length-1
-        }
+    const datesFromDB = await SchoolModel.distinct('participants.examDate')
+    datesFromDB.forEach(date => {
+      const year = date.getFullYear()
+      if (!years.includes(year)) {
+        years.push(year)
       }
     })
     return years
@@ -46,14 +48,27 @@ class FileService {
 
   async writeOnMongoDB (path) {
     const newExam = this.parseFile(path)
-    const findExam = await SchoolModel.find({examCode: newExam.examCode, examName: newExam.examName, examDate: newExam.examDate})
-    if (findExam.length === 0) {
-      const dbExam = await SchoolModel.create(newExam)
-      return dbExam
-    } else {
-      await SchoolModel.updateMany(findExam[0], newExam, {new: true})
-      return findExam[0]
+    const findExamFromDB = await SchoolModel.findOne({examCode: newExam.examCode, examName: newExam.examName})
+    if (findExamFromDB) {
+      for (let indexExamFromDB in findExamFromDB.participants) {
+        for (let index in newExam.participants) {
+          if (findExamFromDB.participants[indexExamFromDB].subname === newExam.participants[index].subname
+            && findExamFromDB.participants[indexExamFromDB].name === newExam.participants[index].name
+            && findExamFromDB.participants[indexExamFromDB].lastname === newExam.participants[index].lastname) {
+              findExamFromDB.participants[indexExamFromDB] = newExam.participants[index]
+            }
+        }
+      }
+      newExam.participants.forEach(participant => {
+        if (!findExamFromDB.participants.includes(participant)) {
+          findExamFromDB.participants.push(participant)
+        }
+      })
+      const updatedExams = await SchoolModel.findOneAndUpdate({examCode: newExam.examCode, examName: newExam.examName}, findExamFromDB, {new: true})
+      return updatedExams
     }
+    const createdExam = await SchoolModel.create(newExam)
+    return createdExam
   }
 
   parseFile (filePath) {
@@ -63,13 +78,13 @@ class FileService {
     const recordsInSheets = {
       examCode: parseString[0],
       examName: this.getNameFromArray(parseString),
-      examDate: parseString[parseString.length-1].split('.').reverse().join('.'),
-      participants: this.parseParticipants(worksheet)
+      examDate: new Date(parseString[parseString.length-1])
     }
+    recordsInSheets.participants = this.parseParticipants(worksheet, recordsInSheets.examDate)
     return recordsInSheets
   }
   
-  parseParticipants(worksheet){
+  parseParticipants(worksheet, data){
     const ref = xlsx.utils.decode_range(worksheet['!ref'])
     const participants = [] 
     for (let row = 2; row <= ref.e.r; row++){
@@ -88,6 +103,7 @@ class FileService {
         worksheet[this.encodeCell(row, 14)]
       ) {
         const participant = {
+          examDate: data,
           MSY: worksheet[this.encodeCell(row, 1)].v,
           schoolCode: worksheet[this.encodeCell(row, 2)].v,
           class: worksheet[this.encodeCell(row, 3)].v,
@@ -96,10 +112,10 @@ class FileService {
           subname: worksheet[this.encodeCell(row, 6)].v,
           name: worksheet[this.encodeCell(row, 7)].v,
           lastname: worksheet[this.encodeCell(row, 8)].v,
-          shortTask: worksheet[this.encodeCell(row, 11)].v,
-          detailedTask: worksheet[this.encodeCell(row, 12)].v,
+          shortTask: this.parseTasks(worksheet[this.encodeCell(row, 11)].v),
+          detailedTask: this.parseTasks(worksheet[this.encodeCell(row, 12)].v, 'detailed'),
           baseScore: worksheet[this.encodeCell(row, 13)].v,
-          score: worksheet[this.encodeCell(row, 14)].v,
+          score: worksheet[this.encodeCell(row, 14)].v
         }
         participants.push(participant)
       } else {
@@ -123,6 +139,37 @@ class FileService {
       }
     }
     return string
+  }
+
+  parseTasks (string, typeOfTasks = 'short') {
+    switch (typeOfTasks) {
+      case 'short':
+        const resultShortArray = []
+        string.split('').forEach(item => {
+          switch (item) {
+            case '-':
+              resultShortArray.push(0)              
+              break
+            case '+':
+              resultShortArray.push(1)
+              break
+            default:
+              resultShortArray.push(+item)
+              break
+          }
+        })
+        return resultShortArray
+      case 'detailed':
+        const resultDetailedArray = []
+        const parseString = string.split('')
+        for (let index = 0;  index < parseString.length; index++) {
+          if (!isNaN(+parseString[index])) {
+            resultDetailedArray.push(+parseString[index])
+            index += 3
+          }
+        }
+        return resultDetailedArray
+    }
   }
 }
 

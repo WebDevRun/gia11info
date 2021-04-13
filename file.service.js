@@ -24,14 +24,19 @@ class FileService {
   }
 
   async getAll(params) {
-    const exams = await SchoolModel.find()
-    return exams.filter(exam => {
-      exam.participants = exam.participants.filter(participant => participant.examDate.getFullYear() === +params.year)
-      if (!exam.participants.length) {
-        return false
-      }
-      return true
-    })
+    const exams = await SchoolModel.aggregate([
+      { $project: {
+        examCode: '$examCode',
+        examName: '$examName',
+        participants: { $filter: {
+          input: '$participants',
+          as: 'participant',
+          cond: { $eq: [{ $year: '$$participant.examDate' }, +params.year] }
+        }}
+      }},
+      { $match: { participants: { $ne: [] } } }
+    ])
+    return exams
   }
 
   async getAllYears() {
@@ -44,6 +49,12 @@ class FileService {
       }
     })
     return years
+  }
+
+  async getAllSchools() {
+    const schoolsFromDB = await SchoolModel.distinct('participants.schoolCode')
+    const schools = ['Все школы', ...schoolsFromDB]
+    return schools
   }
 
   async writeOnMongoDB (path) {
@@ -158,6 +169,7 @@ class FileService {
               break
           }
         })
+        console.log(resultShortArray)
         return resultShortArray
       case 'detailed':
         const resultDetailedArray = []
@@ -168,6 +180,7 @@ class FileService {
             index += 3
           }
         }
+        console.log(resultDetailedArray)
         return resultDetailedArray
     }
   }

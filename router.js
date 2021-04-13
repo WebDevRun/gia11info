@@ -6,7 +6,7 @@ const router = new Router()
 router.post('/exams', FileController.create)
 router.get('/exams', FileController.getAll)
 router.get('/years', FileController.getAllYears)
-// router.put('/exams', FileController.update)
+router.get('/schools', FileController.getAllSchools)
 // router.delete('/exams/:id', FileController.delete)
 
 export default router

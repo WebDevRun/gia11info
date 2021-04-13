@@ -27,6 +27,15 @@ class SchoolController {
       res.status(500).json(error)
     }
   }
+
+  async getAllSchools (req, res) {
+    try {
+      const schools = await FileService.getAllSchools()
+      return res.json(schools)
+    } catch (error) {
+      res.status(500).json(error)
+    }
+  }
 }
 
 export default new SchoolController()

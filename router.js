@@ -7,6 +7,5 @@ router.post('/exams', FileController.create)
 router.get('/exams', FileController.getAll)
 router.get('/years', FileController.getAllYears)
 router.get('/schools', FileController.getAllSchools)
-// router.delete('/exams/:id', FileController.delete)
 
 export default router

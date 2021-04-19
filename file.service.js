@@ -63,9 +63,10 @@ class FileService {
     if (findExamFromDB) {
       for (let indexExamFromDB in findExamFromDB.participants) {
         for (let index in newExam.participants) {
-          if (findExamFromDB.participants[indexExamFromDB].subname === newExam.participants[index].subname
-            && findExamFromDB.participants[indexExamFromDB].name === newExam.participants[index].name
-            && findExamFromDB.participants[indexExamFromDB].lastname === newExam.participants[index].lastname) {
+          if (findExamFromDB.participants[indexExamFromDB].subname === newExam.participants[index].subname &&
+              findExamFromDB.participants[indexExamFromDB].name === newExam.participants[index].name &&
+              findExamFromDB.participants[indexExamFromDB].lastname === newExam.participants[index].lastname &&
+              findExamFromDB.participants[indexExamFromDB].schoolCode === newExam.participants[index].schoolCode) {
               findExamFromDB.participants[indexExamFromDB] = newExam.participants[index]
             }
         }
@@ -91,47 +92,86 @@ class FileService {
       examName: this.getNameFromArray(parseString),
       examDate: new Date(parseString[parseString.length-1])
     }
-    recordsInSheets.participants = this.parseParticipants(worksheet, recordsInSheets.examDate)
+    recordsInSheets.participants = this.parseParticipants(worksheet, recordsInSheets.examDate, recordsInSheets.examCode)
     return recordsInSheets
   }
   
-  parseParticipants(worksheet, data){
+  parseParticipants(worksheet, data, examCode){
     const ref = xlsx.utils.decode_range(worksheet['!ref'])
-    const participants = [] 
-    for (let row = 2; row <= ref.e.r; row++){
-      if (
-        worksheet[this.encodeCell(row, 1)] && 
-        worksheet[this.encodeCell(row, 2)] &&
-        worksheet[this.encodeCell(row, 3)] &&
-        worksheet[this.encodeCell(row, 4)] &&
-        worksheet[this.encodeCell(row, 5)] &&
-        worksheet[this.encodeCell(row, 6)] &&
-        worksheet[this.encodeCell(row, 7)] &&
-        worksheet[this.encodeCell(row, 8)] &&
-        worksheet[this.encodeCell(row, 11)] &&
-        worksheet[this.encodeCell(row, 12)] &&
-        worksheet[this.encodeCell(row, 13)] &&
-        worksheet[this.encodeCell(row, 14)]
-      ) {
-        const participant = {
-          examDate: data,
-          MSY: worksheet[this.encodeCell(row, 1)].v,
-          schoolCode: worksheet[this.encodeCell(row, 2)].v,
-          class: worksheet[this.encodeCell(row, 3)].v,
-          PPACode: worksheet[this.encodeCell(row, 4)].v,
-          classroom: worksheet[this.encodeCell(row, 5)].v,
-          subname: worksheet[this.encodeCell(row, 6)].v,
-          name: worksheet[this.encodeCell(row, 7)].v,
-          lastname: worksheet[this.encodeCell(row, 8)].v,
-          shortTask: this.parseTasks(worksheet[this.encodeCell(row, 11)].v),
-          detailedTask: this.parseTasks(worksheet[this.encodeCell(row, 12)].v, 'detailed'),
-          baseScore: worksheet[this.encodeCell(row, 13)].v,
-          score: worksheet[this.encodeCell(row, 14)].v
+    const participants = []
+    switch (examCode) {
+      case '22':
+        for (let row = 2; row <= ref.e.r; row++){
+          if (
+            worksheet[this.encodeCell(row, 1)] && 
+            worksheet[this.encodeCell(row, 2)] &&
+            worksheet[this.encodeCell(row, 3)] &&
+            worksheet[this.encodeCell(row, 4)] &&
+            worksheet[this.encodeCell(row, 5)] &&
+            worksheet[this.encodeCell(row, 6)] &&
+            worksheet[this.encodeCell(row, 7)] &&
+            worksheet[this.encodeCell(row, 8)] &&
+            worksheet[this.encodeCell(row, 11)] &&
+            worksheet[this.encodeCell(row, 12)] &&
+            worksheet[this.encodeCell(row, 13)]
+          ) {
+            const participant = {
+              examDate: data,
+              MSY: worksheet[this.encodeCell(row, 1)].v,
+              schoolCode: worksheet[this.encodeCell(row, 2)].v,
+              class: worksheet[this.encodeCell(row, 3)].v,
+              PPACode: worksheet[this.encodeCell(row, 4)].v,
+              classroom: worksheet[this.encodeCell(row, 5)].v,
+              subname: worksheet[this.encodeCell(row, 6)].v,
+              name: worksheet[this.encodeCell(row, 7)].v,
+              lastname: worksheet[this.encodeCell(row, 8)].v,
+              shortTask: this.parseTasks(worksheet[this.encodeCell(row, 11)].v),
+              baseScore: worksheet[this.encodeCell(row, 12)].v,
+              score: worksheet[this.encodeCell(row, 13)].v
+            }
+            participants.push(participant)
+          } else {
+            continue
+          }
         }
-        participants.push(participant)
-      } else {
-        continue
-      }
+        break;
+      default:
+        for (let row = 2; row <= ref.e.r; row++){
+          if (
+            worksheet[this.encodeCell(row, 1)] && 
+            worksheet[this.encodeCell(row, 2)] &&
+            worksheet[this.encodeCell(row, 3)] &&
+            worksheet[this.encodeCell(row, 4)] &&
+            worksheet[this.encodeCell(row, 5)] &&
+            worksheet[this.encodeCell(row, 6)] &&
+            worksheet[this.encodeCell(row, 7)] &&
+            worksheet[this.encodeCell(row, 8)] &&
+            worksheet[this.encodeCell(row, 11)] &&
+            worksheet[this.encodeCell(row, 12)] &&
+            worksheet[this.encodeCell(row, 13)] &&
+            worksheet[this.encodeCell(row, 14)]
+          ) {
+            const participant = {
+              examDate: data,
+              MSY: worksheet[this.encodeCell(row, 1)].v,
+              schoolCode: worksheet[this.encodeCell(row, 2)].v,
+              class: worksheet[this.encodeCell(row, 3)].v,
+              PPACode: worksheet[this.encodeCell(row, 4)].v,
+              classroom: worksheet[this.encodeCell(row, 5)].v,
+              subname: worksheet[this.encodeCell(row, 6)].v,
+              name: worksheet[this.encodeCell(row, 7)].v,
+              lastname: worksheet[this.encodeCell(row, 8)].v,
+              shortTask: this.parseTasks(worksheet[this.encodeCell(row, 11)].v),
+              detailedTask: this.parseTasks(worksheet[this.encodeCell(row, 12)].v, 'detailed'),
+              baseScore: worksheet[this.encodeCell(row, 13)].v,
+              score: worksheet[this.encodeCell(row, 14)].v
+            }
+            participants.push(participant)
+          } else {
+            continue
+          }
+        }
+        break;
     }
     return participants
   }
@@ -169,7 +209,6 @@ class FileService {
               break
           }
         })
-        console.log(resultShortArray)
         return resultShortArray
       case 'detailed':
         const resultDetailedArray = []
@@ -180,7 +219,6 @@ class FileService {
             index += 3
           }
         }
-        console.log(resultDetailedArray)
         return resultDetailedArray
     }
   }

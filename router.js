@@ -1,11 +1,19 @@
 import Router from 'express'
-import FileController from './file.controller.js'
+import gia11Controller from './gia11.controller.js'
+import usersController from './users.controller.js'
+import authMiddleware from './middleware/authMiddleware.js'
 
 const router = new Router()
 
-router.post('/exams', FileController.create)
-router.get('/exams', FileController.getAll)
-router.get('/years', FileController.getAllYears)
-router.get('/schools', FileController.getAllSchools)
+router.post('/registration', usersController.registration)
+router.post('/login', usersController.login)
+router.post('/getNewTokens', usersController.getNewTokens)
+router.post('/logout', authMiddleware(['user', 'admin']), usersController.logout)
+router.get('/getusers', authMiddleware(['admin']), usersController.getUsers)
+
+router.post('/exams', authMiddleware(['admin']), gia11Controller.create)
+router.get('/exams', authMiddleware(['user', 'admin']), gia11Controller.getAll)
+router.get('/years', authMiddleware(['user', 'admin']), gia11Controller.getAllYears)
+router.get('/schools', authMiddleware(['user', 'admin']), gia11Controller.getAllSchools)
 
 export default router

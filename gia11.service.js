@@ -1,8 +1,8 @@
 import path from 'path'
 import xlsx from 'xlsx'
-import SchoolModel from './exam.schema.js'
+import ExamModel from './models/exam.schema.js'
 
-class FileService {
+class ExamService {
   async saveFile(file) {
     try {
       let createdExam = []
@@ -18,13 +18,13 @@ class FileService {
         createdExam.push(await this.writeOnMongoDB(filePath))
       }
       return createdExam
-    } catch (e) {
-      console.log(e)
+    } catch (error) {
+      console.log(error)
     }
   }
 
   async getAll(params) {
-    const exams = await SchoolModel.aggregate([
+    const exams = await ExamModel.aggregate([
       { $project: {
         examCode: '$examCode',
         examName: '$examName',
@@ -41,7 +41,7 @@ class FileService {
 
   async getAllYears() {
     const years = []
-    const datesFromDB = await SchoolModel.distinct('participants.examDate')
+    const datesFromDB = await ExamModel.distinct('participants.examDate')
     datesFromDB.forEach(date => {
       const year = date.getFullYear()
       if (!years.includes(year)) {
@@ -52,14 +52,14 @@ class FileService {
   }
 
   async getAllSchools() {
-    const schoolsFromDB = await SchoolModel.distinct('participants.schoolCode')
+    const schoolsFromDB = await ExamModel.distinct('participants.schoolCode')
     const schools = ['Все школы', ...schoolsFromDB]
     return schools
   }
 
   async writeOnMongoDB (path) {
     const newExam = this.parseFile(path)
-    const findExamFromDB = await SchoolModel.findOne({examCode: newExam.examCode, examName: newExam.examName})
+    const findExamFromDB = await ExamModel.findOne({examCode: newExam.examCode, examName: newExam.examName})
     if (findExamFromDB) {
       for (let indexExamFromDB in findExamFromDB.participants) {
         for (let index in newExam.participants) {
@@ -76,10 +76,10 @@ class FileService {
             findExamFromDB.participants.push(participant)
           }
         })
-      const updatedExams = await SchoolModel.findOneAndUpdate({examCode: newExam.examCode, examName: newExam.examName}, findExamFromDB, {new: true})
+      const updatedExams = await ExamModel.findOneAndUpdate({examCode: newExam.examCode, examName: newExam.examName}, findExamFromDB, {new: true})
       return updatedExams
     }
-    const createdExam = await SchoolModel.create(newExam)
+    const createdExam = await ExamModel.create(newExam)
     return createdExam
   }
 
@@ -202,4 +202,4 @@ class FileService {
   }
 }
 
-export default new FileService()
+export default new ExamService()

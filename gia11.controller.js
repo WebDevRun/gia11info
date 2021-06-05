@@ -1,9 +1,9 @@
-import FileService from './file.service.js'
+import gia11service from './gia11.service.js'
 
-class SchoolController {
+class GIA11Controller {
   async create(req, res) {
     try {
-      const data = await FileService.saveFile(req.files.file)
+      const data = await gia11service.saveFile(req.files.file)
       res.json(data)
     } catch (error) {
       res.status(500).json(error)
@@ -12,7 +12,7 @@ class SchoolController {
 
   async getAll(req, res) {
     try {
-      const exams = await FileService.getAll(req.query)
+      const exams = await gia11service.getAll(req.query)
       return res.json(exams)
     } catch (error) {
       res.status(500).json(error)
@@ -21,7 +21,7 @@ class SchoolController {
 
   async getAllYears (req, res) {
     try {
-      const years = await FileService.getAllYears()
+      const years = await gia11service.getAllYears()
       return res.json(years)
     } catch (error) {
       res.status(500).json(error)
@@ -30,7 +30,7 @@ class SchoolController {
 
   async getAllSchools (req, res) {
     try {
-      const schools = await FileService.getAllSchools()
+      const schools = await gia11service.getAllSchools()
       return res.json(schools)
     } catch (error) {
       res.status(500).json(error)
@@ -38,4 +38,4 @@ class SchoolController {
   }
 }
 
-export default new SchoolController()
+export default new GIA11Controller()

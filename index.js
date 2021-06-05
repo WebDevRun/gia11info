@@ -4,9 +4,12 @@ import router from './router.js'
 import fileUpload from 'express-fileupload'
 import history from 'connect-history-api-fallback'
 import path from 'path'
+import dotenv from 'dotenv'
 
-const PORT = 5000
-const DB_URL = "mongodb://localhost:27017/"
+dotenv.config({ path: '.env' })
+
+const PORT = process.env.PORT || 5000
+const DB_URL = process.env.DB_URL
 
 const app = express()
 

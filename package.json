@@ -12,10 +12,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "connect-history-api-fallback": "^1.6.0",
+    "dotenv": "^9.0.1",
     "express": "^4.17.1",
     "express-fileupload": "^1.2.1",
+    "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.11.19",
+    "uuid": "^8.3.2",
     "xlsx": "^0.16.9"
   },
   "devDependencies": {

@@ -10,12 +10,12 @@ class ExamService {
         for (let item in file) {
           const filePath = path.resolve('static', file[item].name)
           await file[item].mv(filePath)
-          createdExam.push(await this.writeOnMongoDB(filePath))
+          createdExam.push(await writeOnMongoDB(filePath))
         }
       } else {
         const filePath = path.resolve('static', file.name)
         await file.mv(filePath)
-        createdExam.push(await this.writeOnMongoDB(filePath))
+        createdExam.push(await writeOnMongoDB(filePath))
       }
       return createdExam
     } catch (error) {
@@ -56,9 +56,10 @@ class ExamService {
     const schools = ['Все школы', ...schoolsFromDB]
     return schools
   }
+}
 
-  async writeOnMongoDB (path) {
-    const newExam = this.parseFile(path)
+const writeOnMongoDB = async (path) => {
+    const newExam = parseFile(path)
     const findExamFromDB = await ExamModel.findOne({examCode: newExam.examCode, examName: newExam.examName})
     if (findExamFromDB) {
       for (let indexExamFromDB in findExamFromDB.participants) {
@@ -83,69 +84,73 @@ class ExamService {
     return createdExam
   }
 
-  parseFile (filePath) {
+  const parseFile = (filePath) => {
     const workbook = xlsx.readFile(filePath)
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const parseString = worksheet['A1'].v.split(' ')
+    console.log(Object.keys(worksheet))
+    const parseString = worksheet[Object.keys(worksheet)[1]].v.split(' ')
     const recordsInSheets = {
       examCode: parseString[0],
-      examName: this.getNameFromArray(parseString),
+      examName: getNameFromArray(parseString),
       examDate: new Date(parseString[parseString.length-1])
     }
-    recordsInSheets.participants = this.parseParticipants(worksheet, recordsInSheets.examDate)
+    recordsInSheets.participants = parseParticipants(worksheet, recordsInSheets.examDate)
     return recordsInSheets
   }
   
-  parseParticipants(worksheet, data){
+  const parseParticipants = (worksheet, data) => {
     const ref = xlsx.utils.decode_range(worksheet['!ref'])
     const participants = []
-    if (worksheet[this.encodeCell(1, 1)]?.v === 'Код МСУ' && 
-        worksheet[this.encodeCell(1, 2)]?.v === 'Код ОО' &&
-        worksheet[this.encodeCell(1, 3)]?.v  === 'Класс' &&
-        worksheet[this.encodeCell(1, 4)]?.v === 'Код ППЭ' &&
-        worksheet[this.encodeCell(1, 5)]?.v === 'Аудитория' &&
-        worksheet[this.encodeCell(1, 6)]?.v === 'Фамилия' &&
-        worksheet[this.encodeCell(1, 7)]?.v === 'Имя' &&
-        worksheet[this.encodeCell(1, 8)]?.v === 'Отчество' &&
-        worksheet[this.encodeCell(1, 11)]?.v === 'Задания с кратким ответом') {
-      if (worksheet[this.encodeCell(1, 12)]?.v === 'Задания с развёрнутым ответом' &&
-          worksheet[this.encodeCell(1, 13)]?.v === 'Первичный балл' &&
-          worksheet[this.encodeCell(1, 14)]?.v === 'Балл') {
+    console.log(startCells(Object.keys(worksheet)))
+    const titlesOfTable = Object.keys(worksheet).slice(startCells(Object.keys(worksheet)), 17)
+    console.log(titlesOfTable)
+    if (worksheet[encodeCell(1, 1)]?.v === 'Код МСУ' && 
+        worksheet[encodeCell(1, 2)]?.v === 'Код ОО' &&
+        worksheet[encodeCell(1, 3)]?.v  === 'Класс' &&
+        worksheet[encodeCell(1, 4)]?.v === 'Код ППЭ' &&
+        worksheet[encodeCell(1, 5)]?.v === 'Аудитория' &&
+        worksheet[encodeCell(1, 6)]?.v === 'Фамилия' &&
+        worksheet[encodeCell(1, 7)]?.v === 'Имя' &&
+        worksheet[encodeCell(1, 8)]?.v === 'Отчество' &&
+        worksheet[encodeCell(1, 11)]?.v === 'Задания с кратким ответом') {
+      if (worksheet[encodeCell(1, 12)]?.v === 'Задания с развёрнутым ответом' &&
+          worksheet[encodeCell(1, 13)]?.v === 'Первичный балл' &&
+          worksheet[encodeCell(1, 14)]?.v === 'Балл') {
         for (let row = 2; row <= ref.e.r; row++){
           const participant = {
             examDate: data,
-            MSY: worksheet[this.encodeCell(row, 1)].v,
-            schoolCode: worksheet[this.encodeCell(row, 2)].v,
-            class: worksheet[this.encodeCell(row, 3)].v,
-            PPACode: worksheet[this.encodeCell(row, 4)].v,
-            classroom: worksheet[this.encodeCell(row, 5)].v,
-            subname: worksheet[this.encodeCell(row, 6)].v,
-            name: worksheet[this.encodeCell(row, 7)].v,
-            lastname: worksheet[this.encodeCell(row, 8)].v,
-            shortTask: this.parseTasks(worksheet[this.encodeCell(row, 11)].v),
-            detailedTask: this.parseTasks(worksheet[this.encodeCell(row, 12)].v, 'detailed'),
-            baseScore: worksheet[this.encodeCell(row, 13)].v,
-            score: worksheet[this.encodeCell(row, 14)].v
+            MSY: worksheet[encodeCell(row, 1)].v,
+            schoolCode: worksheet[encodeCell(row, 2)].v,
+            class: worksheet[encodeCell(row, 3)].v,
+            PPACode: worksheet[encodeCell(row, 4)].v,
+            classroom: worksheet[encodeCell(row, 5)].v,
+            subname: worksheet[encodeCell(row, 6)].v,
+            name: worksheet[encodeCell(row, 7)].v,
+            lastname: worksheet[encodeCell(row, 8)].v,
+            shortTask: parseTasks(worksheet[encodeCell(row, 11)].v),
+            detailedTask: parseTasks(worksheet[encodeCell(row, 12)].v, 'detailed'),
+            baseScore: worksheet[encodeCell(row, 13)].v,
+            score: worksheet[encodeCell(row, 14)].v
           }
           participants.push(participant)
         }
       } 
-      if (worksheet[this.encodeCell(1, 12)]?.v === 'Первичный балл' &&
-          worksheet[this.encodeCell(1, 13)]?.v === 'Балл') {
+      if (worksheet[encodeCell(1, 12)]?.v === 'Первичный балл' &&
+          worksheet[encodeCell(1, 13)]?.v === 'Балл') {
         for (let row = 2; row <= ref.e.r; row++){
           const participant = {
             examDate: data,
-            MSY: worksheet[this.encodeCell(row, 1)].v,
-            schoolCode: worksheet[this.encodeCell(row, 2)].v,
-            class: worksheet[this.encodeCell(row, 3)].v,
-            PPACode: worksheet[this.encodeCell(row, 4)].v,
-            classroom: worksheet[this.encodeCell(row, 5)].v,
-            subname: worksheet[this.encodeCell(row, 6)].v,
-            name: worksheet[this.encodeCell(row, 7)].v,
-            lastname: worksheet[this.encodeCell(row, 8)].v,
-            shortTask: this.parseTasks(worksheet[this.encodeCell(row, 11)].v),
-            baseScore: worksheet[this.encodeCell(row, 12)].v,
-            score: worksheet[this.encodeCell(row, 13)].v
+            MSY: worksheet[encodeCell(row, 1)].v,
+            schoolCode: worksheet[encodeCell(row, 2)].v,
+            class: worksheet[encodeCell(row, 3)].v,
+            PPACode: worksheet[encodeCell(row, 4)].v,
+            classroom: worksheet[encodeCell(row, 5)].v,
+            subname: worksheet[encodeCell(row, 6)].v,
+            name: worksheet[encodeCell(row, 7)].v,
+            lastname: worksheet[encodeCell(row, 8)].v,
+            shortTask: parseTasks(worksheet[encodeCell(row, 11)].v),
+            baseScore: worksheet[encodeCell(row, 12)].v,
+            score: worksheet[encodeCell(row, 13)].v
           }
           participants.push(participant)
         }
@@ -154,11 +159,11 @@ class ExamService {
     return participants
   }
 
-  encodeCell (row, column) {
+  const encodeCell = (row, column) => {
     return xlsx.utils.encode_cell({ c: column, r: row })
   }
 
-  getNameFromArray (array) {
+  const getNameFromArray = (array) => {
     let string = ''
     for (let i = 2; i < array.length - 1; i++) {
       if (i === array.length - 2) {
@@ -170,7 +175,7 @@ class ExamService {
     return string
   }
 
-  parseTasks (string, typeOfTasks = 'short') {
+  const parseTasks = (string, typeOfTasks = 'short') => {
     switch (typeOfTasks) {
       case 'short':
         const resultShortArray = []
@@ -200,6 +205,5 @@ class ExamService {
         return resultDetailedArray
     }
   }
-}
 
 export default new ExamService()

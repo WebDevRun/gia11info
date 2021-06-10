@@ -73,7 +73,7 @@ class UserService {
         error.message = 'invalid refreshToken'
         throw error
       }
-      return { success: true }
+      return { refreshToken: null, accessToken: null }
     } catch (error) {
       return error
     }
@@ -93,7 +93,7 @@ const generateTokens = (id, roles) => {
   const payload = { id, roles }
   const tokens = {
     refreshToken: uuidv4(),
-    accessToken: `Bearer ${jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: '1h' })}`
+    accessToken: `Bearer ${jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: '5s' })}`
   }
   return tokens
 }

@@ -20,7 +20,8 @@ class usersController {
       if (tokens instanceof Error) {
        res.status(tokens.status).json({message: `${tokens.message}`})
       } else {
-        res.json(tokens)
+        res.cookie('refreshToken', tokens.refreshToken, { httpOnly: true })
+        res.json(tokens.accessToken)
       }
     } catch (error) {
       res.status(400).json(error)
@@ -29,11 +30,13 @@ class usersController {
 
   async getNewTokens (req, res) {
     try {
-      const tokens = await usersService.getNewTokens(req.body)
+      const { refreshToken } = req.cookies
+      const tokens = await usersService.getNewTokens(refreshToken)
       if (tokens instanceof Error) {
         res.status(tokens.status).json({message: `${tokens.message}`})
       } else {
-        res.json(tokens)
+        res.cookie('refreshToken', tokens.refreshToken, { httpOnly: true })
+        res.json(tokens.accessToken)
       }
     } catch (error) {
       res.status(400).json(error)
@@ -42,11 +45,14 @@ class usersController {
 
   async logout (req, res) {
     try {
-      const user = await usersService.logout(req.body)
-      if (user instanceof Error) {
-        res.status(user.status).json({message: `${user.message}`})
+      const { refreshToken } = req.cookies
+      console.log(refreshToken)
+      const data = await usersService.logout(refreshToken)
+      if (data instanceof Error) {
+        res.status(data.status).json({message: `${data.message}`})
       } else {
-        res.json(user)
+        res.clearCookie('refreshToken')
+        res.json(data)
       }
     } catch (error) {
       res.status(400).json(error)

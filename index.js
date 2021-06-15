@@ -3,6 +3,8 @@ import mongoose from 'mongoose'
 import router from './router.js'
 import fileUpload from 'express-fileupload'
 import history from 'connect-history-api-fallback'
+import cors from 'cors'
+import cookieParser from 'cookie-parser'
 import path from 'path'
 import dotenv from 'dotenv'
 
@@ -13,12 +15,13 @@ const DB_URL = process.env.DB_URL
 
 const app = express()
 
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*')
-  res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT")
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
-  next()
-})
+app.use(cookieParser())
+app.use(cors({
+  credentials: true
+}))
+app.use(express.static(path.resolve('dist')))
+app.use(express.json())
+app.use(fileUpload({}))
 app.use(history({
   rewrites: [
     {
@@ -29,9 +32,6 @@ app.use(history({
     }
   ]
 }))
-app.use(express.static(path.resolve('dist')))
-app.use(express.json())
-app.use(fileUpload({}))
 app.use('/api', router)
 
 async function startApp() {

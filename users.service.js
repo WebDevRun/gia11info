@@ -47,9 +47,9 @@ class UserService {
     }
   }
 
-  async getNewTokens (data) {
+  async getNewTokens (refreshToken) {
     try {
-      const authSessionHas = await AuthSession.findOne({refreshToken: data.refreshToken})
+      const authSessionHas = await AuthSession.findOne({ refreshToken })
       if (!authSessionHas) {
         const error = new Error
         error.status = 404
@@ -64,16 +64,16 @@ class UserService {
     }
   }
 
-  async logout (data) {
+  async logout (refreshToken) {
     try {
-      const authSessionHas = await AuthSession.deleteOne({refreshToken: data.refreshToken})
+      const authSessionHas = await AuthSession.deleteOne({ refreshToken })
       if (authSessionHas.deletedCount === 0) {
         const error = new Error
         error.status = 404
         error.message = 'invalid refreshToken'
         throw error
       }
-      return { refreshToken: null, accessToken: null }
+      return { isLogout: true }
     } catch (error) {
       return error
     }
@@ -93,7 +93,7 @@ const generateTokens = (id, roles) => {
   const payload = { id, roles }
   const tokens = {
     refreshToken: uuidv4(),
-    accessToken: `Bearer ${jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: '5s' })}`
+    accessToken: `Bearer ${jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: '1h' })}`
   }
   return tokens
 }

@@ -25,7 +25,7 @@ export default function (roles) {
       }
       next()
     } catch (error) {
-      return res.status(403).json({message: 'The user is not logged in'})
+      return res.status(401).json({message: 'The user is not logged in'})
     }
   }
 }

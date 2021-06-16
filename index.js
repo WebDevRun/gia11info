@@ -17,7 +17,8 @@ const app = express()
 
 app.use(cookieParser())
 app.use(cors({
-  credentials: true
+  credentials: true,
+  origin: true
 }))
 app.use(express.static(path.resolve('dist')))
 app.use(express.json())

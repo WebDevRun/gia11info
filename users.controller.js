@@ -46,7 +46,6 @@ class usersController {
   async logout (req, res) {
     try {
       const { refreshToken } = req.cookies
-      console.log(refreshToken)
       const data = await usersService.logout(refreshToken)
       if (data instanceof Error) {
         res.status(data.status).json({message: `${data.message}`})

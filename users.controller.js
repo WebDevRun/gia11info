@@ -1,11 +1,25 @@
 import usersService from './users.service.js'
 
 class usersController {
+  async addRole (req, res) {
+    try {
+      const { role } = req.body
+      const createdRole = await usersService.addRole(role)
+      if (createdRole instanceof Error) {
+        res.status(createdRole.status).json({ message: createdRole.message })
+      } else {
+        res.json({ role: createdRole })
+      }
+    } catch (error) {
+      res.status(400).json(error)
+    }
+  }
+
   async registration (req, res) {
     try {
       const user = await usersService.registration(req.body)
       if (user instanceof Error) {
-        res.status(user.status).json({message: `${user.message}`})
+        res.status(user.status).json({ message: user.message })
       } else {
         res.json(user)
       }
@@ -18,9 +32,9 @@ class usersController {
     try {
       const tokens = await usersService.login(req.body)
       if (tokens instanceof Error) {
-       res.status(tokens.status).json({message: `${tokens.message}`})
+       res.status(tokens.status).json({ message: tokens.message })
       } else {
-        res.cookie('refreshToken', tokens.refreshToken, { httpOnly: true })
+        res.cookie('refreshToken', tokens.refreshToken, { httpOnly: true, sameSite: 'Lax' })
         res.json(tokens.accessToken)
       }
     } catch (error) {
@@ -33,9 +47,9 @@ class usersController {
       const { refreshToken } = req.cookies
       const tokens = await usersService.getNewTokens(refreshToken)
       if (tokens instanceof Error) {
-        res.status(tokens.status).json({message: `${tokens.message}`})
+        res.status(tokens.status).json({ message: tokens.message })
       } else {
-        res.cookie('refreshToken', tokens.refreshToken, { httpOnly: true })
+        res.cookie('refreshToken', tokens.refreshToken, { httpOnly: true, sameSite: 'Lax' })
         res.json(tokens.accessToken)
       }
     } catch (error) {
@@ -48,7 +62,7 @@ class usersController {
       const { refreshToken } = req.cookies
       const data = await usersService.logout(refreshToken)
       if (data instanceof Error) {
-        res.status(data.status).json({message: `${data.message}`})
+        res.status(data.status).json({ message: data.message })
       } else {
         res.clearCookie('refreshToken')
         res.json(data)
@@ -62,7 +76,7 @@ class usersController {
     try {
       const users = await usersService.getUsers()
       if (users instanceof Error) {
-        res.status(users.status).json({message: `${users.message}`})
+        res.status(users.status).json({ message: users.message })
       } else {
         res.json(users)
       }

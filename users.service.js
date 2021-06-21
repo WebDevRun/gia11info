@@ -9,6 +9,23 @@ import dotenv from 'dotenv'
 dotenv.config({ path: '.env' })
 
 class UserService {
+  async addRole (data) {
+    try {
+      const hasUserRole = await Role.findOne({ value: data })
+      if (hasUserRole) {
+        const error = new Error
+        error.status = 403,
+        error.message = 'this role is created'
+        throw error
+      }
+
+      const userRole = await Role.create({ value: data })
+      return userRole
+    } catch (error) {
+      return error
+    }
+  }
+
   async registration (user) {
     try {
       const { firstName, lastName, nickName, password, email } = user
@@ -21,7 +38,7 @@ class UserService {
       }
       const salt = bcrypt.genSaltSync(10);
       var hashPassword = bcrypt.hashSync(password, salt);
-      const userRole = await Role.findOne({value: 'user'})
+      const userRole = await Role.findOne({ value: 'user' })
       const userCreated = await User.create({firstName, lastName, nickName, email, password: hashPassword, roles: [userRole.value]})
       return userCreated
     } catch (error) {
@@ -33,12 +50,13 @@ class UserService {
     try {
       const { nickName, password } = user
       const findUser = await User.findOne({ nickName })
-      if (!findUser || bcrypt.compareSync(password, findUser.password)) {
+      if (!findUser || !bcrypt.compareSync(password, findUser.password)) {
         const error = new Error
         error.status = 403,
         error.message = 'invalid nickname or password'
         throw error
       }
+
       const tokens = generateTokens(findUser._id, findUser.roles)
       await AuthSession.create({ userId: findUser._id, refreshToken: tokens.refreshToken, roles: findUser.roles })
       return tokens
@@ -93,7 +111,7 @@ const generateTokens = (id, roles) => {
   const payload = { id, roles }
   const tokens = {
     refreshToken: uuidv4(),
-    accessToken: `Bearer ${jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: '1h' })}`
+    accessToken: `Bearer ${jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: '5s' })}`
   }
   return tokens
 }

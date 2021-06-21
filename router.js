@@ -5,6 +5,7 @@ import authMiddleware from './middleware/authMiddleware.js'
 
 const router = new Router()
 
+router.post('/addrole', usersController.addRole)
 router.post('/registration', usersController.registration)
 router.post('/login', usersController.login)
 router.post('/getNewTokens', usersController.getNewTokens)

@@ -15,25 +15,25 @@ const DB_URL = process.env.DB_URL
 
 const app = express()
 
-app.use(cookieParser())
 app.use(cors({
   credentials: true,
   origin: true
 }))
-app.use(express.static(path.resolve('dist')))
-app.use(express.json())
-app.use(fileUpload({}))
+app.use(cookieParser())
 app.use(history({
   rewrites: [
     {
       from: /^\/api\/.*$/,
       to: function(context) {
-          return context.parsedUrl.path
+        return context.parsedUrl.path
       }
     }
   ]
 }))
+app.use(express.json())
+app.use(fileUpload({}))
 app.use('/api', router)
+app.use(express.static(path.resolve('dist')))
 
 async function startApp() {
   try {

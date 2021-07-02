@@ -111,7 +111,7 @@ const generateTokens = (id, roles) => {
   const payload = { id, roles }
   const tokens = {
     refreshToken: uuidv4(),
-    accessToken: `Bearer ${jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: '5s' })}`
+    accessToken: `Bearer ${jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: '1h' })}`
   }
   return tokens
 }

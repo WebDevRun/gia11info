@@ -36,6 +36,15 @@ class GIA11Controller {
       res.status(500).json(error)
     }
   }
+
+  async addMinScore (req, res) {
+    try {
+      const data = await gia11service.addMinScore(req.body)
+      res.json(data)
+    } catch (error) {
+      res.status(500).json(error)
+    }
+  }
 }
 
 export default new GIA11Controller()

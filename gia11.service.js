@@ -1,6 +1,7 @@
 import path from 'path'
 import xlsx from 'xlsx'
 import ExamModel from './models/exam.schema.js'
+import MinScore from './models/minScore.schema.js'
 
 class ExamService {
   async saveFile(file) {
@@ -56,6 +57,18 @@ class ExamService {
     const schools = ['Все школы', ...schoolsFromDB]
     return schools
   }
+
+  async addMinScore(data) {
+    const updatedMinScore = await MinScore.updateOne({'year.value': data.year.value}, {$set: {subjects: data.subjects}})
+
+    if (updatedMinScore.n && updatedMinScore.nModified || updatedMinScore.n && !updatedMinScore.nModified) {
+      return updatedMinScore
+    } else {
+      await MinScore.create(data)
+    }
+    
+    return updatedMinScore
+  }
 }
 
 const writeOnMongoDB = async (path) => {
@@ -87,7 +100,7 @@ const writeOnMongoDB = async (path) => {
   const parseFile = (filePath) => {
     const workbook = xlsx.readFile(filePath)
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    console.log(Object.keys(worksheet))
+    // console.log(Object.keys(worksheet))
     const parseString = worksheet[Object.keys(worksheet)[1]].v.split(' ')
     const recordsInSheets = {
       examCode: parseString[0],
@@ -101,9 +114,9 @@ const writeOnMongoDB = async (path) => {
   const parseParticipants = (worksheet, data) => {
     const ref = xlsx.utils.decode_range(worksheet['!ref'])
     const participants = []
-    console.log(startCells(Object.keys(worksheet)))
-    const titlesOfTable = Object.keys(worksheet).slice(startCells(Object.keys(worksheet)), 17)
-    console.log(titlesOfTable)
+    // console.log(startCells(Object.keys(worksheet)))
+    // const titlesOfTable = Object.keys(worksheet).slice(startCells(Object.keys(worksheet)), 17)
+    // console.log(titlesOfTable)
     if (worksheet[encodeCell(1, 1)]?.v === 'Код МСУ' && 
         worksheet[encodeCell(1, 2)]?.v === 'Код ОО' &&
         worksheet[encodeCell(1, 3)]?.v  === 'Класс' &&

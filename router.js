@@ -16,5 +16,6 @@ router.post('/exams', authMiddleware(['admin']), gia11Controller.create)
 router.get('/exams', authMiddleware(['user', 'admin']), gia11Controller.getAll)
 router.get('/years', authMiddleware(['user', 'admin']), gia11Controller.getAllYears)
 router.get('/schools', authMiddleware(['user', 'admin']), gia11Controller.getAllSchools)
+router.post('/addminscore', authMiddleware(['user', 'admin']), gia11Controller.addMinScore)
 
 export default router
